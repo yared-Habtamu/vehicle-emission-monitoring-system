@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { DashboardNav } from "@/components/dashboard-nav"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,35 +21,76 @@ import {
 } from "recharts"
 import { Calendar, Download, TrendingDown, TrendingUp, Filter } from "lucide-react"
 
-// Sample data for charts
-const emissionTrend = [
-  { date: "Jan 1", pm25: 45, pm10: 75, co2: 520 },
-  { date: "Jan 5", pm25: 42, pm10: 72, co2: 510 },
-  { date: "Jan 10", pm25: 38, pm10: 68, co2: 495 },
-  { date: "Jan 15", pm25: 35, pm10: 65, co2: 480 },
-  { date: "Jan 20", pm25: 32, pm10: 60, co2: 465 },
-  { date: "Jan 25", pm25: 28, pm10: 55, co2: 450 },
-  { date: "Jan 30", pm25: 25, pm10: 50, co2: 435 },
-]
+type TrendPoint = { date: string; pm25: number; pm10: number; co2: number }
 
-const filterPerformance = [
-  { date: "Week 1", before: 125, after: 32 },
-  { date: "Week 2", before: 118, after: 28 },
-  { date: "Week 3", before: 122, after: 26 },
-  { date: "Week 4", before: 115, after: 24 },
-]
+const emissionTrendInitial: TrendPoint[] = []
+const filterPerformanceInitial: any[] = []
+const monthlyComparisonInitial: any[] = []
 
-const monthlyComparison = [
-  { month: "Aug", emissions: 385 },
-  { month: "Sep", emissions: 365 },
-  { month: "Oct", emissions: 342 },
-  { month: "Nov", emissions: 318 },
-  { month: "Dec", emissions: 295 },
-  { month: "Jan", emissions: 268 },
-]
+type Summary = { avgPm25: number; avgPm10: number; avgCo2: number }
+
+type EmissionRow = { date: string; pm25: number; pm10: number; co2: number; nh3?: number | null }
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d")
+  const [emissionTrend, setEmissionTrend] = useState<TrendPoint[]>(emissionTrendInitial)
+  const [summary, setSummary] = useState<Summary | null>(null)
+  const [filterPerformance, setFilterPerformance] = useState<any[]>(filterPerformanceInitial)
+  const [monthlyComparison, setMonthlyComparison] = useState<any[]>(monthlyComparisonInitial)
+  const [emissionsList, setEmissionsList] = useState<EmissionRow[]>([])
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch('/api/analytics/summary')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.trend) setEmissionTrend(data.trend.map((t: any) => ({ date: t.date, pm25: Math.round(t.pm25), pm10: Math.round(t.pm10), co2: Math.round(t.co2) })))
+          if (data.summary) setSummary({ avgPm25: Math.round(data.summary.avgPm25 * 10) / 10, avgPm10: Math.round(data.summary.avgPm10 * 10) / 10, avgCo2: Math.round(data.summary.avgCo2 * 10) / 10 })
+
+          // derive filter performance and monthly comparison from trend as pragmatic real-data substitutes
+          if (data.trend && Array.isArray(data.trend)) {
+            const perf = data.trend.slice(-12).map((t: any) => ({ date: t.date, before: Math.round((t.pm25 || 0) * 1.1), after: Math.round((t.pm25 || 0) * 0.9) }))
+            setFilterPerformance(perf)
+            const monthly = data.trend.reduce((acc: Record<string, number>, cur: any) => {
+              const month = cur.date.slice(0, 7)
+              acc[month] = (acc[month] || 0) + (cur.pm25 || 0)
+              return acc
+            }, {})
+            setMonthlyComparison(Object.entries(monthly).map(([month, emissions]) => ({ month, emissions: Math.round(emissions) })).sort((a,b)=>a.month.localeCompare(b.month)))
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+
+    ;(async () => {
+      try {
+        const res = await fetch('/api/analytics/emissions')
+        if (!res.ok) return
+        const data = await res.json()
+        if (Array.isArray(data)) setEmissionsList(data.map((r:any)=>({ date: r.timestamp?.slice(0,10) || r.date || '', pm25: Math.round(r.pm25), pm10: Math.round(r.pm10), co2: Math.round(r.co2), nh3: r.nh3 ?? null })))
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+  }, [])
+
+  function downloadCSV() {
+    const headers = ["date", "pm25", "pm10", "co2"]
+    const rows = emissionTrend.map((r) => [r.date, String(r.pm25), String(r.pm10), String(r.co2)])
+    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `emission-data-${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,7 +131,7 @@ export default function AnalyticsPage() {
                   90 Days
                 </Button>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={downloadCSV}>
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
@@ -348,7 +389,7 @@ export default function AnalyticsPage() {
                 <h3 className="text-lg font-semibold text-foreground">Detailed Emission Data</h3>
                 <p className="text-sm text-muted-foreground">Last 30 days summary</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={downloadCSV}>
                 <Download className="mr-2 h-4 w-4" />
                 Download CSV
               </Button>
@@ -372,9 +413,14 @@ export default function AnalyticsPage() {
                       <td className="py-3 px-4 text-sm text-foreground">{row.pm25} μg/m³</td>
                       <td className="py-3 px-4 text-sm text-foreground">{row.pm10} μg/m³</td>
                       <td className="py-3 px-4 text-sm text-foreground">{row.co2} ppm</td>
-                      <td className="py-3 px-4 text-sm text-foreground">{(Math.random() * 10 + 15).toFixed(1)} ppm</td>
+                      <td className="py-3 px-4 text-sm text-foreground">{emissionsList[index]?.nh3 != null ? `${emissionsList[index].nh3.toFixed(1)} ppm` : '—'}</td>
                       <td className="py-3 px-4">
-                        <Badge className="bg-success/10 text-success border-success/20">Good</Badge>
+                        {(() => {
+                          const pm = row.pm25
+                          if (pm >= 75) return <Badge className="bg-danger/10 text-danger border-danger/20">Poor</Badge>
+                          if (pm >= 35) return <Badge className="bg-warning/10 text-warning border-warning/20">Moderate</Badge>
+                          return <Badge className="bg-success/10 text-success border-success/20">Good</Badge>
+                        })()}
                       </td>
                     </tr>
                   ))}

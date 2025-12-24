@@ -21,12 +21,26 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
+      const text = await res.text()
+      let data: any = null
+      try {
+        data = text ? JSON.parse(text) : null
+      } catch (e) {
+        console.error('Non-JSON response from /api/auth/login', text)
+        setLoading(false)
+        return alert('Server error')
+      }
       setLoading(false)
-      router.push("/dashboard")
-    }, 1000)
+      if (!res.ok) return alert(data?.error || 'Login failed')
+      if (data?.token) localStorage.setItem('token', data.token)
+      router.push('/dashboard')
+    } catch (err) {
+      console.error(err)
+      setLoading(false)
+      alert('Login failed')
+    }
   }
 
   return (

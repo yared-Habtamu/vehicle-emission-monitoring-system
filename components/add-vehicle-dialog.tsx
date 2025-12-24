@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,11 +19,22 @@ export function AddVehicleDialog() {
     deviceId: "",
   })
 
+  const router = useRouter()
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[v0] Adding vehicle:", formData)
-    setOpen(false)
-    setFormData({ plate: "", model: "", year: "", deviceId: "" })
+    ;(async () => {
+      try {
+        const res = await fetch("/api/vehicles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) })
+        if (!res.ok) throw new Error("Failed to add vehicle")
+        setOpen(false)
+        setFormData({ plate: "", model: "", year: "", deviceId: "" })
+        router.refresh()
+      } catch (err) {
+        console.error(err)
+        alert("Unable to add vehicle")
+      }
+    })()
   }
 
   return (

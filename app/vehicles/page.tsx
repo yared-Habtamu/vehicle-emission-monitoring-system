@@ -1,55 +1,46 @@
 "use client"
 
 import { DashboardNav } from "@/components/dashboard-nav"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AddVehicleDialog } from "@/components/add-vehicle-dialog"
 import { Car, Activity, AlertCircle, Settings, TrendingDown, Calendar, Gauge, MoreVertical } from "lucide-react"
 
-const vehicles = [
-  {
-    id: 1,
-    plate: "ABC-1234",
-    model: "Toyota Camry",
-    year: 2023,
-    deviceId: "ESP32-00001",
-    status: "active",
-    lastActive: "2 minutes ago",
-    efficiency: 87,
-    tripsToday: 5,
-    avgEmission: 12.4,
-    color: "bg-primary/10 text-primary",
-  },
-  {
-    id: 2,
-    plate: "XYZ-5678",
-    model: "Honda Civic",
-    year: 2022,
-    deviceId: "ESP32-00002",
-    status: "active",
-    lastActive: "5 minutes ago",
-    efficiency: 82,
-    tripsToday: 3,
-    avgEmission: 15.2,
-    color: "bg-accent/10 text-accent",
-  },
-  {
-    id: 3,
-    plate: "DEF-9012",
-    model: "Ford Focus",
-    year: 2021,
-    deviceId: "ESP32-00003",
-    status: "inactive",
-    lastActive: "2 hours ago",
-    efficiency: 75,
-    tripsToday: 0,
-    avgEmission: 18.6,
-    color: "bg-warning/10 text-warning",
-  },
-]
+type Vehicle = {
+  id: string
+  plate: string
+  model: string
+  year: number
+  deviceId: string
+  status: string
+  lastActive?: string
+  efficiency?: number
+  tripsToday?: number
+  avgEmission?: number
+}
+
+const vehiclesInitial: Vehicle[] = []
 
 export default function VehiclesPage() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>(vehiclesInitial)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const res = await fetch('/api/vehicles')
+        if (!res.ok) throw new Error('Failed to fetch')
+        const data = await res.json()
+        if (mounted) setVehicles(data)
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav />
@@ -94,7 +85,7 @@ export default function VehiclesPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Avg Efficiency</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {Math.round(vehicles.reduce((acc, v) => acc + v.efficiency, 0) / vehicles.length)}%
+                    {vehicles.length ? Math.round(vehicles.reduce((acc, v) => acc + (v.efficiency ?? 0), 0) / vehicles.length) : 0}%
                   </p>
                 </div>
                 <Gauge className="h-8 w-8 text-accent" />
@@ -189,14 +180,18 @@ export default function VehiclesPage() {
                 </div>
 
                 <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                  <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Button>
-                  <Button size="sm" className="flex-1">
-                    <TrendingDown className="mr-2 h-4 w-4" />
-                    View Data
-                  </Button>
+                  <Link href={`/vehicles/${vehicle.id}/settings`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full bg-transparent">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Button>
+                  </Link>
+                  <Link href={`/vehicles/${vehicle.id}`} className="flex-1">
+                    <Button size="sm" className="w-full">
+                      <TrendingDown className="mr-2 h-4 w-4" />
+                      View Data
+                    </Button>
+                  </Link>
                 </div>
               </Card>
             ))}

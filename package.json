@@ -5,8 +5,13 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "prisma:dbpush": "prisma db push",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev --name init --preview-feature",
+    "db:create-indexes": "node scripts/create-partial-indexes.js",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -59,8 +64,15 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "zod": "3.25.76"
+    ,"@prisma/client": "5.14.0",
+    "bcrypt": "5.1.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "9.0.2"
   },
   "devDependencies": {
+    "prisma": "5.14.0",
+    "playwright": "^1.57.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
     "@types/react": "^19",

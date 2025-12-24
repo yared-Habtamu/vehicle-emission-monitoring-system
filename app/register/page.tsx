@@ -31,12 +31,25 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: formData.name, email: formData.email, password: formData.password }) })
+      const text = await res.text()
+      let data: any = null
+      try {
+        data = text ? JSON.parse(text) : null
+      } catch (e) {
+        console.error('Non-JSON response from /api/auth/register', text)
+        setLoading(false)
+        return alert('Server error')
+      }
       setLoading(false)
-      router.push("/dashboard")
-    }, 1000)
+      if (!res.ok) return alert(data?.error || 'Registration failed')
+      router.push('/dashboard')
+    } catch (err) {
+      console.error(err)
+      setLoading(false)
+      alert('Registration failed')
+    }
   }
 
   return (

@@ -1,30 +1,33 @@
-# Functional front-end code
+VEM 
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+## Backend & Database (local)
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/yared-habtamus-projects/v0-functional-front-end-code)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/jT0Sdmv6jeP)
+This project now includes a lightweight backend using Prisma. For local development you can use SQLite or connect to a remote Postgres (Supabase).
 
-## Overview
+1. Copy `.env.example` to `.env` and fill values. If you are using Supabase, set the following essential variables:
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+	- `NEXT_PUBLIC_SUPABASE_URL` (public client URL, used in browser)
+	- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (public anon key for client)
+	- `SUPABASE_KEY` (service role key, server-only)
+	- `DATABASE_URL` (Postgres connection string; can point to Supabase Postgres)
+	- `JWT_SECRET` (secret used to sign tokens)
+2. Install dependencies: `pnpm install` (this will include Prisma and @prisma/client).
+3. Generate Prisma client: `pnpm prisma:generate`
+4. Run migrations (creates or updates database schema): `pnpm prisma:migrate:dev`
+5. Start the dev server: `pnpm dev`
 
-## Deployment
+API endpoints provided (under `/app/api`):
+- `POST /api/auth/register` - register user
+- `POST /api/auth/login` - login and receive JWT
+- `GET/POST /api/vehicles` - list and create vehicles
+- `GET/PUT/DELETE /api/vehicles/:id` - manage vehicle
+- `POST /api/vehicles/:id/emissions` - ingest emission reading
+- `GET/POST /api/reports` - list and create reports
+- `GET /api/analytics/summary` - emission trend & summary
 
-Your project is live at:
+Supabase integration notes:
+- Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for browser access.
+- Set `SUPABASE_KEY` (service role key) for server-side operations.
 
-**[https://vercel.com/yared-habtamus-projects/v0-functional-front-end-code](https://vercel.com/yared-habtamus-projects/v0-functional-front-end-code)**
+Security note: `.env.example` includes a generated `JWT_SECRET` for convenience — replace it with a secure value in production and never commit real secrets to the repository.
 
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.app/chat/jT0Sdmv6jeP](https://v0.app/chat/jT0Sdmv6jeP)**
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository

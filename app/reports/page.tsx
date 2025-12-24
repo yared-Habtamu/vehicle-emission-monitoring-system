@@ -1,71 +1,70 @@
 "use client"
 
 import { DashboardNav } from "@/components/dashboard-nav"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FileText, Download, Calendar, TrendingDown, Leaf, Award, Share2, Eye } from "lucide-react"
 
-const reports = [
-  {
-    id: 1,
-    title: "Monthly Emission Summary - January 2025",
-    description: "Complete analysis of emission data for all vehicles",
-    date: "January 31, 2025",
-    type: "Monthly Report",
-    status: "ready",
-    metrics: {
-      avgPm25: "32.5 μg/m³",
-      reduction: "28%",
-      trips: 245,
-    },
-    color: "bg-primary/10 text-primary",
-  },
-  {
-    id: 2,
-    title: "Filter Performance Report - Q1 2025",
-    description: "Quarterly assessment of filter efficiency and maintenance needs",
-    date: "January 30, 2025",
-    type: "Quarterly Report",
-    status: "ready",
-    metrics: {
-      avgPm25: "84%",
-      reduction: "76%",
-      trips: 735,
-    },
-    color: "bg-accent/10 text-accent",
-  },
-  {
-    id: 3,
-    title: "Environmental Impact Assessment",
-    description: "Contribution to SDG 11 & 13 goals and carbon footprint analysis",
-    date: "January 28, 2025",
-    type: "Impact Report",
-    status: "ready",
-    metrics: {
-      avgPm25: "2.4M kg",
-      reduction: "68%",
-      trips: 980,
-    },
-    color: "bg-success/10 text-success",
-  },
-  {
-    id: 4,
-    title: "Weekly Summary - Week 4",
-    description: "Snapshot of emission levels and trends for the past week",
-    date: "January 26, 2025",
-    type: "Weekly Report",
-    status: "ready",
-    metrics: {
-      avgPm25: "28.2 μg/m³",
-      reduction: "12%",
-      trips: 56,
-    },
-    color: "bg-warning/10 text-warning",
-  },
-]
+import { useEffect, useState } from "react"
+
+type Report = {
+  id: string
+  title: string
+  description?: string
+  date: string
+  type: string
+  status: string
+  metrics: any
+  color?: string
+}
+
+const reportsInitial: Report[] = []
 
 export default function ReportsPage() {
+  const [reports, setReports] = useState<Report[]>(reportsInitial)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const res = await fetch('/api/reports')
+        if (!res.ok) throw new Error('Failed to fetch reports')
+        const data = await res.json()
+        if (mounted) setReports(data)
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
+
+  function downloadReportAsCSV(report: any) {
+    const headers = ["id", "title", "date", "type", "avgPm25", "reduction", "trips"]
+    const row = [report.id, report.title, report.date, report.type, report.metrics.avgPm25, report.metrics.reduction, String(report.metrics.trips)]
+    const csv = [headers.join(','), row.map(String).join(',')].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${report.title.replace(/[^a-z0-9]+/gi,'_')}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function generateNewReport() {
+    const mock = {
+      id: Date.now(),
+      title: `New Report ${new Date().toISOString()}`,
+      date: new Date().toLocaleString(),
+      type: "Ad-hoc",
+      metrics: { avgPm25: "N/A", reduction: "0%", trips: 0 },
+    }
+    downloadReportAsCSV(mock)
+  }
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav />
@@ -78,7 +77,7 @@ export default function ReportsPage() {
               <h1 className="text-3xl font-bold text-foreground mb-2">Reports</h1>
               <p className="text-muted-foreground">Generate and download emission reports</p>
             </div>
-            <Button>
+            <Button onClick={generateNewReport}>
               <FileText className="mr-2 h-4 w-4" />
               Generate New Report
             </Button>
@@ -175,11 +174,13 @@ export default function ReportsPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </Button>
-                        <Button size="sm" className="flex-1">
+                        <Link href={`/reports/${report.id}`} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full bg-transparent">
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </Button>
+                        </Link>
+                        <Button size="sm" className="flex-1" onClick={() => downloadReportAsCSV(report)}>
                           <Download className="mr-2 h-4 w-4" />
                           Download
                         </Button>

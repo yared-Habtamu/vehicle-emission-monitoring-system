@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   title: "VEM - Vehicle Emission Monitoring",
   description:
     "Real-time vehicle emission monitoring platform. Track, analyze, and reduce your carbon footprint with smart sensor technology.",
-  generator: "v0.app",
   keywords: [
     "emission monitoring",
     "air quality",
@@ -20,23 +19,7 @@ export const metadata: Metadata = {
     "PM2.5",
     "pollution tracking",
   ],
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
+  // No icons specified to avoid favicon being set
 }
 
 export default function RootLayout({
