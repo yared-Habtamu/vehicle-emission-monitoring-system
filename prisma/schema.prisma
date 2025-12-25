@@ -13,7 +13,7 @@ model User {
   email     String   @unique
   password  String
   role      String   @default("user")
-  createdAt DateTime? @default(now())
+  createdAt DateTime @default(now())
   vehicles  Vehicle[]
 }
 
@@ -30,15 +30,6 @@ model Vehicle {
   ownerId    String?     @db.ObjectId
   emissions  Emission[]
   alerts     Alert[]
-  deviceKeys DeviceKey[]
-}
-
-model DeviceKey {
-  id        String   @id @map("_id") @default(auto()) @db.ObjectId
-  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
-  vehicleId String   @db.ObjectId
-  key       String   @unique
-  createdAt DateTime @default(now())
 }
 
 model Emission {
@@ -49,17 +40,14 @@ model Emission {
   pm10      Float
   co2       Float
   nh3       Float?
-  deviceId  String?  
-  sampleId  String?
-  metrics   Json?
-  timestamp DateTime? @default(now())
+  timestamp DateTime @default(now())
 }
 
 model Report {
   id          String   @id @map("_id") @default(auto()) @db.ObjectId
   title       String
   description String?
-  date        DateTime? @default(now())
+  date        DateTime @default(now())
   type        String
   status      String   @default("ready")
   metrics     Json
@@ -72,5 +60,5 @@ model Alert {
   message   String
   level     String   @default("info")
   resolved  Boolean  @default(false)
-  createdAt DateTime? @default(now())
+  createdAt DateTime @default(now())
 }

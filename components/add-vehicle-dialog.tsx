@@ -1,41 +1,51 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Car, Plus } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Car, Plus } from "lucide-react";
 
 export function AddVehicleDialog() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     plate: "",
     model: "",
     year: "",
     deviceId: "",
-  })
+  });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    ;(async () => {
+    e.preventDefault();
+    (async () => {
       try {
-        const res = await fetch("/api/vehicles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) })
-        if (!res.ok) throw new Error("Failed to add vehicle")
-        setOpen(false)
-        setFormData({ plate: "", model: "", year: "", deviceId: "" })
-        router.refresh()
+        const res = await fetch("/api/vehicles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (!res.ok) throw new Error("Failed to add vehicle");
+        setOpen(false);
+        setFormData({ plate: "", model: "", year: "", deviceId: "" });
+        router.refresh();
       } catch (err) {
-        console.error(err)
-        alert("Unable to add vehicle")
+        console.error(err);
+        alert("Unable to add vehicle");
       }
-    })()
-  }
+    })();
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -58,7 +68,9 @@ export function AddVehicleDialog() {
               id="plate"
               placeholder="ABC-1234"
               value={formData.plate}
-              onChange={(e) => setFormData({ ...formData, plate: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, plate: e.target.value })
+              }
               required
             />
           </div>
@@ -71,7 +83,9 @@ export function AddVehicleDialog() {
               id="model"
               placeholder="Toyota Camry"
               value={formData.model}
-              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, model: e.target.value })
+              }
               required
             />
           </div>
@@ -85,7 +99,9 @@ export function AddVehicleDialog() {
               type="number"
               placeholder="2023"
               value={formData.year}
-              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, year: e.target.value })
+              }
               required
             />
           </div>
@@ -98,13 +114,20 @@ export function AddVehicleDialog() {
               id="deviceId"
               placeholder="ESP32-00001"
               value={formData.deviceId}
-              onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, deviceId: e.target.value })
+              }
               required
             />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="flex-1"
+            >
               Cancel
             </Button>
             <Button type="submit" className="flex-1">
@@ -115,5 +138,5 @@ export function AddVehicleDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

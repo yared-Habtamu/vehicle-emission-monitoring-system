@@ -1,4 +1,6 @@
-import prisma from "../lib/prisma";
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 
 async function run() {
   try {
@@ -12,7 +14,7 @@ async function run() {
           key: { sampleId: 1 },
           name: "Emission_sampleId_partial",
           unique: true,
-          partialFilterExpression: { sampleId: { $exists: true, $ne: null } },
+          partialFilterExpression: { sampleId: { $exists: true } },
         },
       ],
     };
@@ -20,7 +22,7 @@ async function run() {
     console.log("Index creation result:", res);
   } catch (err) {
     console.error("Failed to create partial index:", err);
-    process.exit(1);
+    process.exitCode = 1;
   } finally {
     await prisma.$disconnect();
   }

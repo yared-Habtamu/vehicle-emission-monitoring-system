@@ -1,46 +1,58 @@
-"use client"
+"use client";
 
-import { DashboardNav } from "@/components/dashboard-nav"
-import Link from "next/link"
-import { Card } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { AddVehicleDialog } from "@/components/add-vehicle-dialog"
-import { Car, Activity, AlertCircle, Settings, TrendingDown, Calendar, Gauge, MoreVertical } from "lucide-react"
+import { DashboardNav } from "@/components/dashboard-nav";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AddVehicleDialog } from "@/components/add-vehicle-dialog";
+import {
+  Car,
+  Activity,
+  AlertCircle,
+  Settings,
+  TrendingDown,
+  Calendar,
+  Gauge,
+  MoreVertical,
+} from "lucide-react";
 
 type Vehicle = {
-  id: string
-  plate: string
-  model: string
-  year: number
-  deviceId: string
-  status: string
-  lastActive?: string
-  efficiency?: number
-  tripsToday?: number
-  avgEmission?: number
-}
+  id: string;
+  plate: string;
+  model: string;
+  year: number;
+  deviceId: string;
+  status: string;
+  lastActive?: string;
+  efficiency?: number;
+  tripsToday?: number;
+  avgEmission?: number;
+  color?: string;
+};
 
-const vehiclesInitial: Vehicle[] = []
+const vehiclesInitial: Vehicle[] = [];
 
 export default function VehiclesPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(vehiclesInitial)
+  const [vehicles, setVehicles] = useState<Vehicle[]>(vehiclesInitial);
 
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
+    let mounted = true;
+    (async () => {
       try {
-        const res = await fetch('/api/vehicles')
-        if (!res.ok) throw new Error('Failed to fetch')
-        const data = await res.json()
-        if (mounted) setVehicles(data)
+        const res = await fetch("/api/vehicles");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        if (mounted) setVehicles(data);
       } catch (err) {
-        console.error(err)
+        console.error(err);
       }
-    })()
-    return () => { mounted = false }
-  }, [])
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav />
@@ -50,8 +62,12 @@ export default function VehiclesPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Vehicle Management</h1>
-              <p className="text-muted-foreground">Manage your vehicles and connected sensors</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Vehicle Management
+              </h1>
+              <p className="text-muted-foreground">
+                Manage your vehicles and connected sensors
+              </p>
             </div>
             <AddVehicleDialog />
           </div>
@@ -61,8 +77,12 @@ export default function VehiclesPage() {
             <Card className="p-4 bg-card border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Vehicles</p>
-                  <p className="text-2xl font-bold text-foreground">{vehicles.length}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Vehicles
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {vehicles.length}
+                  </p>
                 </div>
                 <Car className="h-8 w-8 text-primary" />
               </div>
@@ -83,9 +103,19 @@ export default function VehiclesPage() {
             <Card className="p-4 bg-card border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg Efficiency</p>
+                  <p className="text-sm text-muted-foreground">
+                    Avg Efficiency
+                  </p>
                   <p className="text-2xl font-bold text-foreground">
-                    {vehicles.length ? Math.round(vehicles.reduce((acc, v) => acc + (v.efficiency ?? 0), 0) / vehicles.length) : 0}%
+                    {vehicles.length
+                      ? Math.round(
+                          vehicles.reduce(
+                            (acc, v) => acc + (v.efficiency ?? 0),
+                            0
+                          ) / vehicles.length
+                        )
+                      : 0}
+                    %
                   </p>
                 </div>
                 <Gauge className="h-8 w-8 text-accent" />
@@ -97,7 +127,7 @@ export default function VehiclesPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Trips Today</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {vehicles.reduce((acc, v) => acc + v.tripsToday, 0)}
+                    {vehicles.reduce((acc, v) => acc + (v.tripsToday ?? 0), 0)}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-warning" />
@@ -114,14 +144,23 @@ export default function VehiclesPage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`h-14 w-14 rounded-xl ${vehicle.color} flex items-center justify-center`}>
+                  <div
+                    className={`h-14 w-14 rounded-xl ${
+                      vehicle.color ?? "bg-muted"
+                    } flex items-center justify-center`}
+                  >
                     <Car className="h-7 w-7" />
                   </div>
                   <div className="flex items-center gap-2">
                     {vehicle.status === "active" ? (
-                      <Badge className="bg-success/10 text-success border-success/20">Active</Badge>
+                      <Badge className="bg-success/10 text-success border-success/20">
+                        Active
+                      </Badge>
                     ) : (
-                      <Badge className="bg-muted text-muted-foreground border-border" variant="outline">
+                      <Badge
+                        className="bg-muted text-muted-foreground border-border"
+                        variant="outline"
+                      >
                         Inactive
                       </Badge>
                     )}
@@ -133,7 +172,9 @@ export default function VehiclesPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">{vehicle.plate}</h3>
+                    <h3 className="text-xl font-bold text-foreground">
+                      {vehicle.plate}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
                       {vehicle.model} ({vehicle.year})
                     </p>
@@ -142,46 +183,81 @@ export default function VehiclesPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <Activity className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Device:</span>
-                    <span className="text-foreground font-medium">{vehicle.deviceId}</span>
+                    <span className="text-foreground font-medium">
+                      {vehicle.deviceId}
+                    </span>
                   </div>
 
                   <div className="pt-3 border-t border-border space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Filter Efficiency</span>
-                      <span className="font-semibold text-foreground">{vehicle.efficiency}%</span>
+                      <span className="text-muted-foreground">
+                        Filter Efficiency
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {vehicle.efficiency ?? 0}%
+                      </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
-                        className={`h-full ${vehicle.efficiency >= 85 ? "bg-success" : vehicle.efficiency >= 70 ? "bg-warning" : "bg-danger"}`}
-                        style={{ width: `${vehicle.efficiency}%` }}
+                        className={`h-full ${
+                          (vehicle.efficiency ?? 0) >= 85
+                            ? "bg-success"
+                            : (vehicle.efficiency ?? 0) >= 70
+                            ? "bg-warning"
+                            : "bg-danger"
+                        }`}
+                        style={{ width: `${vehicle.efficiency ?? 0}%` }}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <div className="text-xs text-muted-foreground mb-1">Avg PM2.5</div>
-                      <div className="text-lg font-bold text-foreground">{vehicle.avgEmission}</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Avg PM2.5
+                      </div>
+                      <div className="text-lg font-bold text-foreground">
+                        {vehicle.avgEmission ?? "—"}
+                      </div>
                       <div className="text-xs text-muted-foreground">μg/m³</div>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <div className="text-xs text-muted-foreground mb-1">Trips Today</div>
-                      <div className="text-lg font-bold text-foreground">{vehicle.tripsToday}</div>
-                      <div className="text-xs text-muted-foreground">completed</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Trips Today
+                      </div>
+                      <div className="text-lg font-bold text-foreground">
+                        {vehicle.tripsToday ?? 0}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        completed
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 pt-2">
                     <div
-                      className={`h-2 w-2 rounded-full ${vehicle.status === "active" ? "bg-success animate-pulse-soft" : "bg-muted"}`}
+                      className={`h-2 w-2 rounded-full ${
+                        vehicle.status === "active"
+                          ? "bg-success animate-pulse-soft"
+                          : "bg-muted"
+                      }`}
                     />
-                    <span className="text-xs text-muted-foreground">Last active {vehicle.lastActive}</span>
+                    <span className="text-xs text-muted-foreground">
+                      Last active {vehicle.lastActive ?? "—"}
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                  <Link href={`/vehicles/${vehicle.id}/settings`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
+                  <Link
+                    href={`/vehicles/${vehicle.id}/settings`}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                    >
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </Button>
@@ -204,15 +280,23 @@ export default function VehiclesPage() {
                 <AlertCircle className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">How to Connect a New Device</h3>
+                <h3 className="font-semibold text-foreground mb-2">
+                  How to Connect a New Device
+                </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  To add a new vehicle, you'll need the ESP32 device ID from your emission sensor system. Make sure the
-                  device is powered on and connected to Wi-Fi.
+                  To add a new vehicle, you'll need the ESP32 device ID from
+                  your emission sensor system. Make sure the device is powered
+                  on and connected to Wi-Fi.
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Ensure your ESP32 sensor system is installed on the vehicle exhaust</li>
+                  <li>
+                    Ensure your ESP32 sensor system is installed on the vehicle
+                    exhaust
+                  </li>
                   <li>Connect the device to your Wi-Fi network</li>
-                  <li>Note down the Device ID displayed on the sensor screen</li>
+                  <li>
+                    Note down the Device ID displayed on the sensor screen
+                  </li>
                   <li>Click "Add Vehicle" and enter your vehicle details</li>
                 </ul>
               </div>
@@ -221,5 +305,5 @@ export default function VehiclesPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
