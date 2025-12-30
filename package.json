@@ -7,7 +7,7 @@
     "dev": "next dev",
     "tsc": "tsc --noEmit --pretty",
     "prisma:dbpush": "prisma db push",
-    "prisma:generate": "prisma generate",
+    "prisma:generate": "prisma generate && next build",
     "prisma:migrate:dev": "prisma migrate dev --name init --preview-feature",
     "lint": "eslint .",
     "start": "next start"
