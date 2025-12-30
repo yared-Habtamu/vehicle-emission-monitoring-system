@@ -41,7 +41,10 @@ export default function VehiclesPage() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/vehicles");
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch("/api/vehicles", { headers });
         if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
         if (mounted) setVehicles(data);

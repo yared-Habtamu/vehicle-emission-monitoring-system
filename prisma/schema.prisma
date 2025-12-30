@@ -30,6 +30,15 @@ model Vehicle {
   ownerId    String?     @db.ObjectId
   emissions  Emission[]
   alerts     Alert[]
+  keys       DeviceKey[]
+}
+
+model DeviceKey {
+  id        String   @id @map("_id") @default(auto()) @db.ObjectId
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  vehicleId String   @db.ObjectId
+  key       String   @unique
+  createdAt DateTime @default(now())
 }
 
 model Emission {

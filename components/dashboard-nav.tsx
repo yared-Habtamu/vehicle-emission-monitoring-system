@@ -1,15 +1,35 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Car, BarChart3, FileText, Bell, Settings, LogOut, Wind, Menu, X } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { useState } from "react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  LayoutDashboard,
+  Car,
+  BarChart3,
+  FileText,
+  Bell,
+  Settings,
+  LogOut,
+  Wind,
+  Menu,
+  X,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function DashboardNav() {
-  const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
+    router.push("/login");
+  };
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -18,7 +38,7 @@ export function DashboardNav() {
     { href: "/reports", icon: FileText, label: "Reports" },
     { href: "/alerts", icon: Bell, label: "Alerts" },
     { href: "/settings", icon: Settings, label: "Settings" },
-  ]
+  ];
 
   return (
     <>
@@ -34,7 +54,7 @@ export function DashboardNav() {
 
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href;
             return (
               <Link key={item.href} href={item.href}>
                 <div
@@ -48,14 +68,18 @@ export function DashboardNav() {
                   <span className="font-medium">{item.label}</span>
                 </div>
               </Link>
-            )
+            );
           })}
         </nav>
 
         <div className="p-4 border-t border-border">
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground">
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+          >
             <LogOut className="mr-3 h-5 w-5" />
-            Sign Out
+            Log Out
           </Button>
         </div>
       </aside>
@@ -69,8 +93,16 @@ export function DashboardNav() {
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
@@ -81,9 +113,13 @@ export function DashboardNav() {
         <div className="lg:hidden fixed inset-0 top-16 bg-background z-40 animate-slide-in">
           <nav className="p-4 space-y-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href
+              const isActive = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   <div
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                       isActive
@@ -95,15 +131,19 @@ export function DashboardNav() {
                     <span className="font-medium">{item.label}</span>
                   </div>
                 </Link>
-              )
+              );
             })}
-            <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground mt-4">
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground hover:text-foreground mt-4"
+            >
               <LogOut className="mr-3 h-5 w-5" />
-              Sign Out
+              Log Out
             </Button>
           </nav>
         </div>
       )}
     </>
-  )
+  );
 }

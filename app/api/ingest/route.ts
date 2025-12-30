@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import handleIngest from "@/lib/ingest";
 
-export async function POST(req: Request, context: { params: any }) {
+export async function POST(req: Request) {
   try {
-    let params = context.params;
-    if (params && typeof params.then === "function") params = await params;
-    const deviceId = params?.deviceId;
     const body = await req.json();
+    const deviceId = body?.deviceId;
     const res = await handleIngest(deviceId, body, req.headers);
     return NextResponse.json(res.body, { status: res.status });
   } catch (err) {

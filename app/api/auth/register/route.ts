@@ -19,7 +19,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const hash = await hashPassword(password, 10);
+    let hash: string;
+    try {
+      hash = await hashPassword(password, 10);
+    } catch (e) {
+      console.error("Error hashing password:", e);
+      throw new Error("Password hashing failed");
+    }
     const user = await prisma.user.create({
       data: { name, email, password: hash },
     });
@@ -29,8 +35,18 @@ export async function POST(req: Request) {
       name: user.name,
       email: user.email,
     });
-  } catch (err) {
+  } catch (err: any) {
+    // Log full error and stack for easier debugging in dev
     console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    if (err?.stack) console.error(err.stack);
+
+    // In development return the underlying error message to the client to help debugging.
+    // In production keep the generic message to avoid leaking internals.
+    const message =
+      process.env.NODE_ENV !== "production"
+        ? err?.message || String(err)
+        : "Server error";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

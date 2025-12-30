@@ -31,18 +31,24 @@ export function AddVehicleDialog() {
     e.preventDefault();
     (async () => {
       try {
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const headers: any = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
         const res = await fetch("/api/vehicles", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(formData),
         });
-        if (!res.ok) throw new Error("Failed to add vehicle");
+        const body = await res.json();
+        if (!res.ok) throw new Error(body?.error || "Failed to add vehicle");
         setOpen(false);
         setFormData({ plate: "", model: "", year: "", deviceId: "" });
         router.refresh();
       } catch (err) {
         console.error(err);
-        alert("Unable to add vehicle");
+        alert(err instanceof Error ? err.message : "Unable to add vehicle");
       }
     })();
   };

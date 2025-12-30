@@ -25,3 +25,48 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs / editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# logs
+*.log
+logs/
+
+# test artifacts
+/test-results/
+/playwright-report/
+/playwright-report-*/
+
+# coverage
+coverage/
+coverage-final.json
+nyc_output/
+
+# caches / build outputs
+.cache/
+.next/cache/
+dist/
+/build/
+
+# certs / keys
+*.pem
+*.key
+*.crt
+*.p12
+
+# local envs / secrets
+.env.local
+.env.*.local
+.env.test.local
+
+# misc
+.sass-cache/
+*.tgz
