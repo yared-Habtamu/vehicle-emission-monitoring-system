@@ -1,43 +1,56 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Wind, Mail, Lock, User, ArrowRight } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Wind, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [loading, setLoading] = useState(false)
+  });
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match")
-      return
+      alert("Passwords do not match");
+      return;
     }
 
-    setLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-      router.push("/dashboard")
-    }, 1000)
-  }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (!res.ok) return alert(data.error || "Registration failed");
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      alert("Registration failed");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-accent/5 p-4">
@@ -51,8 +64,12 @@ export default function RegisterPage() {
             <Wind className="h-10 w-10 text-primary" />
             <span className="text-2xl font-bold text-foreground">VEM</span>
           </Link>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
-          <p className="text-muted-foreground">Start monitoring your vehicle emissions today</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Create Account
+          </h1>
+          <p className="text-muted-foreground">
+            Start monitoring your vehicle emissions today
+          </p>
         </div>
 
         <Card className="p-8 shadow-xl bg-card border-border">
@@ -68,7 +85,9 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="John Doe"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="pl-10"
                   required
                 />
@@ -86,7 +105,9 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   className="pl-10"
                   required
                 />
@@ -104,7 +125,9 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   className="pl-10"
                   required
                 />
@@ -122,14 +145,24 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
                   className="pl-10"
                   required
                 />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={loading}
+            >
               {loading ? (
                 "Creating account..."
               ) : (
@@ -144,7 +177,10 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary font-medium hover:underline">
+              <Link
+                href="/login"
+                className="text-primary font-medium hover:underline"
+              >
                 Sign in
               </Link>
             </p>
@@ -152,9 +188,10 @@ export default function RegisterPage() {
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          By creating an account, you agree to our Terms of Service and Privacy Policy
+          By creating an account, you agree to our Terms of Service and Privacy
+          Policy
         </p>
       </div>
     </div>
-  )
+  );
 }

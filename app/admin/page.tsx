@@ -384,10 +384,13 @@ export default function AdminPage() {
 
               <div className="space-y-4">
                 {[
-                  { region: "North America", users: 3842, percentage: 36.6 },
-                  { region: "Europe", users: 2956, percentage: 28.2 },
-                  { region: "Asia Pacific", users: 2234, percentage: 21.3 },
-                  { region: "Latin America", users: 1455, percentage: 13.9 },
+                  { region: "Addis", users: 3842, percentage: 30 },
+                  { region: "Bahir Dar", users: 2500, percentage: 20 },
+                  { region: "Adama", users: 2300, percentage: 18 },
+                  { region: "Mekele", users: 1200, percentage: 10 },
+                  { region: "Gondar", users: 900, percentage: 8 },
+                  { region: "Hawassa", users: 500, percentage: 4 },
+                  { region: "Afar", users: 200, percentage: 2 },
                 ].map((item) => (
                   <div key={item.region}>
                     <div className="flex items-center justify-between mb-2">

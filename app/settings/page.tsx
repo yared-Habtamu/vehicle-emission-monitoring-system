@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { DashboardNav } from "@/components/dashboard-nav"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { User, Bell, Shield, Palette, Save } from "lucide-react"
+import { DashboardNav } from "@/components/dashboard-nav";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { User, Bell, Shield, Palette, Save } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -17,8 +17,12 @@ export default function SettingsPage() {
         <div className="p-6 lg:p-8 space-y-8 max-w-4xl">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-            <p className="text-muted-foreground">Manage your account and preferences</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Settings
+            </h1>
+            <p className="text-muted-foreground">
+              Manage your account and preferences
+            </p>
           </div>
 
           {/* Profile Settings */}
@@ -28,8 +32,12 @@ export default function SettingsPage() {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Profile Information</h2>
-                <p className="text-sm text-muted-foreground">Update your personal details</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Profile Information
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Update your personal details
+                </p>
               </div>
             </div>
 
@@ -39,13 +47,21 @@ export default function SettingsPage() {
                   <Label htmlFor="firstName" className="text-foreground">
                     First Name
                   </Label>
-                  <Input id="firstName" placeholder="John" defaultValue="John" />
+                  <Input
+                    id="firstName"
+                    placeholder="Yared"
+                    defaultValue="Yared"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName" className="text-foreground">
                     Last Name
                   </Label>
-                  <Input id="lastName" placeholder="Doe" defaultValue="Doe" />
+                  <Input
+                    id="lastName"
+                    placeholder="Habtamu"
+                    defaultValue="Habtamu"
+                  />
                 </div>
               </div>
 
@@ -53,7 +69,12 @@ export default function SettingsPage() {
                 <Label htmlFor="email" className="text-foreground">
                   Email Address
                 </Label>
-                <Input id="email" type="email" placeholder="john@example.com" defaultValue="john@example.com" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="yared@abc.com"
+                  defaultValue="yared@abc.com"
+                />
               </div>
 
               <Button className="mt-4">
@@ -70,32 +91,48 @@ export default function SettingsPage() {
                 <Bell className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
-                <p className="text-sm text-muted-foreground">Configure your alert preferences</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Notifications
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Configure your alert preferences
+                </p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-foreground">Email Notifications</p>
-                  <p className="text-sm text-muted-foreground">Receive alerts via email</p>
+                  <p className="font-medium text-foreground">
+                    Email Notifications
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Receive alerts via email
+                  </p>
                 </div>
                 <Switch defaultChecked />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-foreground">High Emission Alerts</p>
-                  <p className="text-sm text-muted-foreground">Alert when emissions exceed thresholds</p>
+                  <p className="font-medium text-foreground">
+                    High Emission Alerts
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Alert when emissions exceed thresholds
+                  </p>
                 </div>
                 <Switch defaultChecked />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-foreground">Filter Maintenance Reminders</p>
-                  <p className="text-sm text-muted-foreground">Notify when filter needs replacement</p>
+                  <p className="font-medium text-foreground">
+                    Filter Maintenance Reminders
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Notify when filter needs replacement
+                  </p>
                 </div>
                 <Switch defaultChecked />
               </div>
@@ -103,7 +140,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-foreground">Weekly Reports</p>
-                  <p className="text-sm text-muted-foreground">Receive weekly emission summaries</p>
+                  <p className="text-sm text-muted-foreground">
+                    Receive weekly emission summaries
+                  </p>
                 </div>
                 <Switch />
               </div>
@@ -117,8 +156,12 @@ export default function SettingsPage() {
                 <Shield className="h-5 w-5 text-danger" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Security</h2>
-                <p className="text-sm text-muted-foreground">Manage your password and security settings</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Security
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Manage your password and security settings
+                </p>
               </div>
             </div>
 
@@ -127,21 +170,33 @@ export default function SettingsPage() {
                 <Label htmlFor="currentPassword" className="text-foreground">
                   Current Password
                 </Label>
-                <Input id="currentPassword" type="password" placeholder="••••••••" />
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  placeholder="••••••••"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="newPassword" className="text-foreground">
                   New Password
                 </Label>
-                <Input id="newPassword" type="password" placeholder="••••••••" />
+                <Input
+                  id="newPassword"
+                  type="password"
+                  placeholder="••••••••"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-foreground">
                   Confirm New Password
                 </Label>
-                <Input id="confirmPassword" type="password" placeholder="••••••••" />
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                />
               </div>
 
               <Button className="mt-4">Update Password</Button>
@@ -155,8 +210,12 @@ export default function SettingsPage() {
                 <Palette className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Appearance</h2>
-                <p className="text-sm text-muted-foreground">Customize your interface</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Appearance
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Customize your interface
+                </p>
               </div>
             </div>
 
@@ -164,7 +223,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-foreground">Dark Mode</p>
-                  <p className="text-sm text-muted-foreground">Switch between light and dark themes</p>
+                  <p className="text-sm text-muted-foreground">
+                    Switch between light and dark themes
+                  </p>
                 </div>
                 <Switch />
               </div>
@@ -173,5 +234,5 @@ export default function SettingsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

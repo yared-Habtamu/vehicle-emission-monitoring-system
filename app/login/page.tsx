@@ -1,33 +1,44 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Wind, Mail, Lock, ArrowRight } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Wind, Mail, Lock, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-      router.push("/dashboard")
-    }, 1000)
-  }
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (!res.ok) return alert(data.error || "Login failed");
+      // store token
+      if (data.token) localStorage.setItem("token", data.token);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      alert("Login failed");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-accent/5 p-4">
@@ -41,8 +52,12 @@ export default function LoginPage() {
             <Wind className="h-10 w-10 text-primary" />
             <span className="text-2xl font-bold text-foreground">VEM</span>
           </Link>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground">Sign in to access your emission dashboard</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-muted-foreground">
+            Sign in to access your emission dashboard
+          </p>
         </div>
 
         <Card className="p-8 shadow-xl bg-card border-border">
@@ -88,7 +103,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={loading}
+            >
               {loading ? (
                 "Signing in..."
               ) : (
@@ -103,7 +123,10 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/register" className="text-primary font-medium hover:underline">
+              <Link
+                href="/register"
+                className="text-primary font-medium hover:underline"
+              >
                 Sign up for free
               </Link>
             </p>
@@ -115,5 +138,5 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }
