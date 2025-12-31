@@ -3,10 +3,10 @@ import prisma from "@/lib/prisma";
 
 export async function GET(req: Request, { params }: { params: any }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const vehicle = await prisma.vehicle.findUnique({
       where: { id },
-      include: { emissions: true, alerts: true },
+      include: { samples: true, alerts: true },
     });
     if (!vehicle)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: any }) {
 
 export async function PUT(req: Request, { params }: { params: any }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await req.json();
     const vehicle = await prisma.vehicle.update({ where: { id }, data });
     return NextResponse.json(vehicle);
@@ -31,7 +31,7 @@ export async function PUT(req: Request, { params }: { params: any }) {
 
 export async function DELETE(req: Request, { params }: { params: any }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await prisma.vehicle.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (err) {

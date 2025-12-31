@@ -24,11 +24,10 @@ model Vehicle {
   year       Int
   deviceId   String      @unique
   status     String      @default("inactive")
-  efficiency Int         @default(0)
-  avgEmission Float      @default(0)
+  efficiency Float       @default(0)
   owner      User?       @relation(fields: [ownerId], references: [id])
   ownerId    String?     @db.ObjectId
-  emissions  Emission[]
+  samples    Sample[]
   alerts     Alert[]
   keys       DeviceKey[]
 }
@@ -41,15 +40,18 @@ model DeviceKey {
   createdAt DateTime @default(now())
 }
 
-model Emission {
+model Sample {
   id        String   @id @map("_id") @default(auto()) @db.ObjectId
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
   vehicleId String   @db.ObjectId
-  pm25      Float
-  pm10      Float
-  co2       Float
-  nh3       Float?
-  timestamp DateTime @default(now())
+  deviceId   String
+  sampleId   String
+  timestamp  DateTime
+  in         Int
+  out        Int
+  efficiency Float
+
+  @@unique([vehicleId, sampleId])
 }
 
 model Report {

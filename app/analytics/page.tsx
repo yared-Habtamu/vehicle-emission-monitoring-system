@@ -27,9 +27,9 @@ import {
   Filter,
 } from "lucide-react";
 
-type TrendPoint = { date: string; pm25: number; pm10: number; co2: number };
+type TrendPoint = { date: string; in: number; out: number; efficiency: number };
 type FilterPoint = { date: string; before: number; after: number };
-type MonthlyPoint = { month: string; emissions: number };
+type MonthlyPoint = { month: string; efficiency: number };
 
 const emissionTrendInitial: TrendPoint[] = [];
 const filterPerformanceInitial: FilterPoint[] = [];
@@ -56,9 +56,9 @@ export default function AnalyticsPage() {
           setEmissionTrend(
             data.trend.map((t: any) => ({
               date: t.date,
-              pm25: Math.round(t.pm25),
-              pm10: Math.round(t.pm10),
-              co2: Math.round(t.co2),
+              in: Math.round(t.in),
+              out: Math.round(t.out),
+              efficiency: Math.round(t.efficiency),
             }))
           );
         if (data.filterPerformance)
@@ -72,19 +72,19 @@ export default function AnalyticsPage() {
   }, []);
 
   function downloadCSV() {
-    const headers = ["date", "pm25", "pm10", "co2"];
+    const headers = ["date", "in", "out", "efficiency"];
     const rows = emissionTrend.map((r) => [
       r.date,
-      String(r.pm25),
-      String(r.pm10),
-      String(r.co2),
+      String(r.in),
+      String(r.out),
+      String(r.efficiency),
     ]);
     const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `emission-data-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `mq135-data-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
                 Historical Analytics
               </h1>
               <p className="text-muted-foreground">
-                Track emission trends and performance over time
+                Track MQ135 sensor trends and system performance over time
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -146,9 +146,7 @@ export default function AnalyticsPage() {
             <Card className="p-6 bg-card border-border">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Avg PM2.5
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-1">Avg In</p>
                   <p className="text-3xl font-bold text-foreground">32.5</p>
                   <p className="text-xs text-muted-foreground mt-1">μg/m³</p>
                 </div>
@@ -169,7 +167,7 @@ export default function AnalyticsPage() {
             <Card className="p-6 bg-card border-border">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Avg PM10</p>
+                  <p className="text-sm text-muted-foreground mb-1">Avg Out</p>
                   <p className="text-3xl font-bold text-foreground">63.5</p>
                   <p className="text-xs text-muted-foreground mt-1">μg/m³</p>
                 </div>
@@ -190,7 +188,9 @@ export default function AnalyticsPage() {
             <Card className="p-6 bg-card border-border">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Avg CO₂</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Avg Efficiency
+                  </p>
                   <p className="text-3xl font-bold text-foreground">478</p>
                   <p className="text-xs text-muted-foreground mt-1">ppm</p>
                 </div>
@@ -232,15 +232,15 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Emission Trends */}
+          {/* MQ135 Trends */}
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-foreground">
-                  Emission Trends Over Time
+                  MQ135 Trends Over Time
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Track how your emissions have changed
+                  Track how your readings have changed
                 </p>
               </div>
               <Button variant="outline" size="sm">
@@ -272,26 +272,26 @@ export default function AnalyticsPage() {
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="pm25"
+                    dataKey="in"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
-                    name="PM2.5 (μg/m³)"
+                    name="In"
                     dot={{ fill: "hsl(var(--primary))" }}
                   />
                   <Line
                     type="monotone"
-                    dataKey="pm10"
+                    dataKey="out"
                     stroke="hsl(var(--accent))"
                     strokeWidth={2}
-                    name="PM10 (μg/m³)"
+                    name="Out"
                     dot={{ fill: "hsl(var(--accent))" }}
                   />
                   <Line
                     type="monotone"
-                    dataKey="co2"
+                    dataKey="efficiency"
                     stroke="hsl(var(--warning))"
                     strokeWidth={2}
-                    name="CO₂ (ppm)"
+                    name="Efficiency (%)"
                     dot={{ fill: "hsl(var(--warning))" }}
                   />
                 </LineChart>
@@ -354,10 +354,10 @@ export default function AnalyticsPage() {
             <Card className="p-6 bg-card border-border">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-foreground">
-                  Monthly Emission Reduction
+                  Monthly Average Efficiency
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Total emissions per month
+                  Average efficiency per month
                 </p>
               </div>
               <div className="h-72">
@@ -365,7 +365,7 @@ export default function AnalyticsPage() {
                   <AreaChart data={monthlyComparison}>
                     <defs>
                       <linearGradient
-                        id="colorEmissions"
+                        id="colorEfficiency"
                         x1="0"
                         y1="0"
                         x2="0"
@@ -405,12 +405,12 @@ export default function AnalyticsPage() {
                     />
                     <Area
                       type="monotone"
-                      dataKey="emissions"
+                      dataKey="efficiency"
                       stroke="hsl(var(--primary))"
                       strokeWidth={2}
                       fillOpacity={1}
-                      fill="url(#colorEmissions)"
-                      name="Total Emissions (kg)"
+                      fill="url(#colorEfficiency)"
+                      name="Efficiency (%)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -430,8 +430,7 @@ export default function AnalyticsPage() {
                     Excellent Progress
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Your emissions have decreased by 28% this month. Keep up the
-                    great work!
+                    Your average efficiency improved this month. Keep it up!
                   </p>
                 </div>
               </div>
@@ -447,8 +446,7 @@ export default function AnalyticsPage() {
                     Peak Hours
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Most emissions occur between 8-10 AM during your morning
-                    commute.
+                    Review readings by time window to find peak patterns.
                   </p>
                 </div>
               </div>
@@ -477,7 +475,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-foreground">
-                  Detailed Emission Data
+                  Detailed MQ135 Data
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Last 30 days summary
@@ -496,16 +494,13 @@ export default function AnalyticsPage() {
                       Date
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      PM2.5
+                      In
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      PM10
+                      Out
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      CO₂
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                      NH₃
+                      Efficiency
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
                       Status
@@ -522,16 +517,13 @@ export default function AnalyticsPage() {
                         {row.date}
                       </td>
                       <td className="py-3 px-4 text-sm text-foreground">
-                        {row.pm25} μg/m³
+                        {row.in}
                       </td>
                       <td className="py-3 px-4 text-sm text-foreground">
-                        {row.pm10} μg/m³
+                        {row.out}
                       </td>
                       <td className="py-3 px-4 text-sm text-foreground">
-                        {row.co2} ppm
-                      </td>
-                      <td className="py-3 px-4 text-sm text-foreground">
-                        {(Math.random() * 10 + 15).toFixed(1)} ppm
+                        {row.efficiency}%
                       </td>
                       <td className="py-3 px-4">
                         <Badge className="bg-success/10 text-success border-success/20">

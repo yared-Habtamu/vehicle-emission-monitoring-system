@@ -4,18 +4,11 @@ import { randomUUID } from "crypto";
 export type IngestPayload = {
   deviceId?: string;
   sampleId?: string;
-  timestamp?: string;
-  pm25?: number;
-  pm10?: number;
-  co2?: number;
-  nh3?: number;
-  pm25_before?: number;
-  pm10_before?: number;
-  temperature?: number;
-  humidity?: number;
-  battery?: number;
-  firmware?: string;
-  [key: string]: any;
+  timestamp?: string | number;
+  in?: number;
+  out?: number;
+  efficiency?: number;
+  deviceKey?: string;
 };
 
 export async function handleIngest(
@@ -23,14 +16,42 @@ export async function handleIngest(
   body: IngestPayload,
   headers: Headers
 ) {
+  // Strict payload validation: accept only MQ135 fields.
+  const allowedKeys = new Set([
+    "deviceId",
+    "sampleId",
+    "timestamp",
+    "in",
+    "out",
+    "efficiency",
+    // allow deviceKey in body for deployments where headers are hard
+    "deviceKey",
+  ]);
+  for (const key of Object.keys(body ?? {})) {
+    if (!allowedKeys.has(key)) {
+      return {
+        status: 400,
+        body: { error: `Unexpected field: ${key}` },
+      };
+    }
+  }
+
   // basic validation
   if (!deviceId) return { status: 400, body: { error: "Missing deviceId" } };
 
-  const timestamp = body.timestamp ? new Date(body.timestamp) : new Date();
+  const timestamp =
+    body.timestamp == null
+      ? new Date()
+      : typeof body.timestamp === "number"
+      ? new Date(body.timestamp)
+      : new Date(body.timestamp);
   if (Number.isNaN(timestamp.getTime()))
     return { status: 400, body: { error: "Invalid timestamp" } };
 
-  const sampleId = body.sampleId ?? randomUUID();
+  if (!body.sampleId) {
+    return { status: 400, body: { error: "Missing sampleId" } };
+  }
+  const sampleId = body.sampleId;
 
   // resolve vehicle
   const vehicle = await prisma.vehicle.findUnique({ where: { deviceId } });
@@ -81,8 +102,8 @@ export async function handleIngest(
   // idempotency check
   try {
     const rawFind: any = await prisma.$runCommandRaw({
-      find: "Emission",
-      filter: { sampleId },
+      find: "Sample",
+      filter: { vehicleId: vehicle.id, sampleId },
       limit: 1,
     });
     const existing = (rawFind as any)?.cursor?.firstBatch?.[0];
@@ -92,111 +113,105 @@ export async function handleIngest(
         vehicleId: existing.vehicleId,
         deviceId: existing.deviceId,
         sampleId: existing.sampleId,
-        pm25: Number(existing.pm25),
-        pm10: Number(existing.pm10),
-        co2: Number(existing.co2),
-        nh3: existing.nh3 == null ? null : Number(existing.nh3),
+        in: Number(existing.in),
+        out: Number(existing.out),
+        efficiency: Number(existing.efficiency),
         timestamp:
           existing.timestamp instanceof Date
             ? existing.timestamp
             : new Date(existing.timestamp),
-        metrics: existing.metrics,
       };
-      return { status: 200, body: { success: true, emission: existingObj } };
+      return { status: 200, body: { success: true, sample: existingObj } };
     }
   } catch (_e) {
     // ignore idempotent lookup errors
   }
 
-  const pm25 = body.pm25 ?? body.pm25_before ?? null;
-  const pm10 = body.pm10 ?? body.pm10_before ?? null;
-  const co2 = body.co2 ?? null;
-  if (pm25 == null || pm10 == null || co2 == null)
+  // Fallback idempotency check (Prisma) in case raw command is unavailable in this runtime.
+  try {
+    const existing = await (prisma as any).sample.findFirst({
+      where: { vehicleId: vehicle.id, sampleId },
+    });
+    if (existing) {
+      return { status: 200, body: { success: true, sample: existing } };
+    }
+  } catch (_e) {
+    // ignore
+  }
+
+  const inVal = body.in;
+  const outVal = body.out;
+  if (inVal == null || outVal == null) {
     return {
       status: 400,
-      body: { error: "Missing required readings (pm25, pm10, co2)" },
+      body: { error: "Missing required fields (in, out)" },
     };
+  }
 
-  let emission: any = null;
+  const efficiencyVal =
+    body.efficiency != null
+      ? Number(body.efficiency)
+      : Number(inVal) !== 0
+      ? ((Number(inVal) - Number(outVal)) / Number(inVal)) * 100
+      : null;
+
+  if (efficiencyVal == null || Number.isNaN(efficiencyVal)) {
+    return { status: 400, body: { error: "Missing or invalid efficiency" } };
+  }
+
+  let sample: any = null;
   try {
-    // Create core fields with Prisma (only model fields). We'll attach sampleId/deviceId/metrics via raw update
-    emission = await prisma.emission.create({
+    // Using explicit `vehicleId` avoids relation connect quirks on Mongo.
+    sample = await (prisma as any).sample.create({
       data: {
-        vehicle: { connect: { id: vehicle.id } },
-        pm25: Number(pm25),
-        pm10: Number(pm10),
-        co2: Number(co2),
-        nh3: body.nh3 == null ? null : Number(body.nh3),
+        vehicleId: vehicle.id,
+        deviceId,
+        sampleId,
         timestamp,
+        in: Number(inVal),
+        out: Number(outVal),
+        efficiency: Number(efficiencyVal),
       } as any,
     });
-    // annotate returned object with device/sample/metrics for response
-    (emission as any).deviceId = deviceId;
-    (emission as any).sampleId = sampleId;
-    (emission as any).metrics = body;
-    // attempt to persist sampleId/deviceId/metrics to the underlying document so future raw finds can locate it
-    try {
-      await prisma.$runCommandRaw({
-        update: "Emission",
-        updates: [
-          {
-            q: {
-              vehicleId: vehicle.id,
-              pm25: Number(pm25),
-              pm10: Number(pm10),
-              timestamp,
-            },
-            u: { $set: { sampleId, deviceId, metrics: body } },
-            multi: false,
-          },
-        ],
-      });
-    } catch (_u) {
-      // ignore raw persistence failures
-    }
   } catch (createErr: any) {
     if (createErr?.code === "P2031") {
       // raw insert fallback
       try {
         await prisma.$runCommandRaw({
-          insert: "Emission",
+          insert: "Sample",
           documents: [
             {
               vehicleId: vehicle.id,
               deviceId,
               sampleId,
-              pm25: Number(pm25),
-              pm10: Number(pm10),
-              co2: Number(co2),
-              nh3: body.nh3 == null ? null : Number(body.nh3),
               timestamp,
-              metrics: body,
+              in: Number(inVal),
+              out: Number(outVal),
+              efficiency: Number(efficiencyVal),
             },
           ],
         });
         // read back
         try {
           const rawFind: any = await prisma.$runCommandRaw({
-            find: "Emission",
-            filter: { sampleId },
+            find: "Sample",
+            filter: { vehicleId: vehicle.id, sampleId },
             limit: 1,
           });
           const first = (rawFind as any)?.cursor?.firstBatch?.[0];
           if (first) {
-            emission = {
+            sample = {
               id: first._id?.toString?.() ?? first._id,
               vehicleId: first.vehicleId,
               deviceId: first.deviceId ?? deviceId,
               sampleId: first.sampleId,
-              pm25: Number(first.pm25),
-              pm10: Number(first.pm10),
-              co2: Number(first.co2),
-              nh3: first.nh3 == null ? null : Number(first.nh3),
+              in: Number(first.in),
+              out: Number(first.out),
+              efficiency: Number(first.efficiency),
               timestamp:
                 first.timestamp instanceof Date
                   ? first.timestamp
                   : new Date(first.timestamp),
-              metrics: first.metrics,
             };
           }
         } catch (_rb) {}
@@ -210,20 +225,17 @@ export async function handleIngest(
 
   // recalc vehicle stats (best effort)
   try {
-    const all = await prisma.emission.findMany({
+    const all = await (prisma as any).sample.findMany({
       where: { vehicleId: vehicle.id },
     });
-    const avgPm25 = all.length
-      ? all.reduce((s, e) => s + e.pm25, 0) / all.length
+    const avgEff = all.length
+      ? all.reduce((s: number, e: any) => s + Number(e.efficiency ?? 0), 0) /
+        all.length
       : 0;
-    const efficiency = Math.max(
-      0,
-      Math.min(100, Math.round(100 - avgPm25 || 0))
-    );
     try {
       await prisma.vehicle.update({
         where: { id: vehicle.id },
-        data: { avgEmission: avgPm25, efficiency },
+        data: { efficiency: avgEff },
       });
     } catch (updateErr: any) {
       if (updateErr?.code === "P2031") {
@@ -233,7 +245,7 @@ export async function handleIngest(
             updates: [
               {
                 q: { deviceId },
-                u: { $set: { avgEmission: avgPm25, efficiency } },
+                u: { $set: { efficiency: avgEff } },
               },
             ],
           });
@@ -243,12 +255,12 @@ export async function handleIngest(
   } catch (_e) {}
 
   // create alerts/reports for thresholds (best-effort)
-  if ((emission?.pm25 ?? 0) >= 150 || (emission?.pm10 ?? 0) >= 250) {
+  if ((sample?.efficiency ?? 0) <= 30) {
     try {
       await prisma.alert.create({
         data: {
           vehicleId: vehicle.id,
-          message: `High emissions detected (PM2.5: ${emission.pm25}, PM10: ${emission.pm10})`,
+          message: `Low filter efficiency detected (efficiency: ${sample.efficiency}%)`,
           level: "critical",
         },
       });
@@ -256,30 +268,30 @@ export async function handleIngest(
     try {
       await prisma.report.create({
         data: {
-          title: "High emissions detected",
-          description: `Device ${deviceId} reported extreme emissions`,
+          title: "Low filter efficiency detected",
+          description: `Device ${deviceId} reported low filter efficiency`,
           type: "anomaly",
           metrics: {
-            pm25: emission.pm25,
-            pm10: emission.pm10,
-            co2: emission.co2,
+            in: sample.in,
+            out: sample.out,
+            efficiency: sample.efficiency,
           },
         },
       });
     } catch (_e) {}
-  } else if ((emission?.pm25 ?? 0) >= 75 || (emission?.pm10 ?? 0) >= 150) {
+  } else if ((sample?.efficiency ?? 0) <= 60) {
     try {
       await prisma.alert.create({
         data: {
           vehicleId: vehicle.id,
-          message: `Elevated emissions detected (PM2.5: ${emission.pm25}, PM10: ${emission.pm10})`,
+          message: `Reduced filter efficiency detected (efficiency: ${sample.efficiency}%)`,
           level: "warning",
         },
       });
     } catch (_e) {}
   }
 
-  return { status: 201, body: { success: true, emission } };
+  return { status: 201, body: { success: true, sample } };
 }
 
 export default handleIngest;
