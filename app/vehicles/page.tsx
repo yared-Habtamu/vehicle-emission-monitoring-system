@@ -28,7 +28,8 @@ type Vehicle = {
   lastActive?: string;
   efficiency?: number;
   tripsToday?: number;
-  avgEmission?: number;
+  avgIn?: number;
+  avgOut?: number;
   color?: string;
 };
 
@@ -46,8 +47,30 @@ export default function VehiclesPage() {
         const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
         const res = await fetch("/api/vehicles", { headers });
         if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        if (mounted) setVehicles(data);
+        const baseVehicles = await res.json();
+
+        // Enrich vehicles with MQ135 averages from Sample collection.
+        const enriched = await Promise.all(
+          (baseVehicles ?? []).map(async (v: any) => {
+            try {
+              const r = await fetch(`/api/vehicles/${v.id}/samples?limit=50`, {
+                headers,
+              });
+              if (!r.ok) return v;
+              const s = await r.json();
+              return {
+                ...v,
+                avgIn: s?.summary?.avgIn,
+                avgOut: s?.summary?.avgOut,
+                efficiency: s?.summary?.avgEfficiency ?? v.efficiency,
+              };
+            } catch {
+              return v;
+            }
+          })
+        );
+
+        if (mounted) setVehicles(enriched);
       } catch (err) {
         console.error(err);
       }
@@ -217,23 +240,25 @@ export default function VehiclesPage() {
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="bg-muted/30 rounded-lg p-3">
                       <div className="text-xs text-muted-foreground mb-1">
-                        Avg PM2.5
+                        Avg In
                       </div>
                       <div className="text-lg font-bold text-foreground">
-                        {vehicle.avgEmission ?? "—"}
+                        {vehicle.avgIn != null
+                          ? Math.round(vehicle.avgIn)
+                          : "—"}
                       </div>
-                      <div className="text-xs text-muted-foreground">μg/m³</div>
+                      <div className="text-xs text-muted-foreground">raw</div>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
                       <div className="text-xs text-muted-foreground mb-1">
-                        Trips Today
+                        Avg Out
                       </div>
                       <div className="text-lg font-bold text-foreground">
-                        {vehicle.tripsToday ?? 0}
+                        {vehicle.avgOut != null
+                          ? Math.round(vehicle.avgOut)
+                          : "—"}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        completed
-                      </div>
+                      <div className="text-xs text-muted-foreground">raw</div>
                     </div>
                   </div>
 
