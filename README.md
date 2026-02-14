@@ -26,10 +26,9 @@ API endpoints provided (under `/app/api`):
 - `POST /api/vehicles/:id/emissions` - ingest emission reading
 - `GET/POST /api/reports` - list and create reports
 - `GET /api/analytics/summary` - emission trend & summary
-
-Supabase integration notes:
-
 - Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for browser access.
 - Set `SUPABASE_KEY` (service role key) for server-side operations.
 
 Security note: `.env.example` includes a generated `JWT_SECRET` for convenience — replace it with a secure value in production and never commit real secrets to the repository.
+
+possible to use MongoDB too.
